@@ -1,5 +1,3 @@
-function main() {
+import App from "./App.js";
 
-}
-
-main();
+new App(document.querySelector("#app"));
