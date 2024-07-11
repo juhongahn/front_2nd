@@ -2,13 +2,13 @@ import {
   createCartView,
   reRenderCartItems,
   reRenderTotalPrice,
-} from './createCartView';
+} from './createCartView.ts';
 import {
   appendCartItem,
   itemButtonsOnClick,
   setEvent,
 } from './createEventListener.ts';
-import { createShoppingCart } from './createShoppingCart';
+import { createShoppingCart } from './createShoppingCart.ts';
 import { isHTMLElement } from './utils/domHelpers.ts';
 
 function main() {
