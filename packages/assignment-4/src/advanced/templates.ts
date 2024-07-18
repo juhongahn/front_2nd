@@ -1,13 +1,13 @@
-import { CartItem } from './entities/cartItem.ts';
-import { DiscountDetail, Product } from './types/type.ts';
+import { CartItem } from "./entities/cartItem.ts";
+import { DiscountDetail, Product } from "./types/type.ts";
 
 export const getProductOptionLiteral = (product: Product) =>
-  `<option value="${product.id}">${product.name + ' - ' + product.price + '원'}</option>`;
+  `<option value="${product.id}">${product.name + " - " + product.price + "원"}</option>`;
 
 export const getMainLayoutLiteral = ({ items }: { items: Product[] }) => {
   let optionLiteral;
   if (items) {
-    optionLiteral = items.map((item) => getProductOptionLiteral(item)).join('');
+    optionLiteral = items.map((item) => getProductOptionLiteral(item)).join("");
   }
 
   return `<div class="bg-gray-100 p-8">
@@ -15,7 +15,7 @@ export const getMainLayoutLiteral = ({ items }: { items: Product[] }) => {
       <h1 class="text-2xl font-bold mb-4">장바구니</h1>
         <div id="cart-items"></div>
         <div id="cart-total" class="text-xl font-bold my-4"></div>
-        <select NEWid="product-select" class="border rounded p-2 mr-2">
+        <select id="product-select" class="border rounded p-2 mr-2">
         ${optionLiteral}
       </select>
         <button id="add-to-cart" class="bg-blue-500 text-white px-4 py-2 rounded">추가</button>
@@ -24,7 +24,7 @@ export const getMainLayoutLiteral = ({ items }: { items: Product[] }) => {
 };
 
 export const getCartItemLiteral = (
-  cartItem: CartItem
+  cartItem: CartItem,
 ) => `<div class="flex justify-between items-center mb-2">
     <span>${cartItem.product.name} - ${cartItem.product.price}원 x ${cartItem.quantity}</span>
     <div>
@@ -38,7 +38,7 @@ export const getCartTotalLiteral = (discountDetail: DiscountDetail) => {
   const discountText =
     discountDetail.discountRate > 0
       ? `(${(discountDetail.discountRate * 100).toFixed(1)}% 할인 적용)`
-      : '';
+      : "";
 
   return `총액: ${Math.round(discountDetail.total)}원
     <span class="text-green-500 ml-2">
