@@ -2,70 +2,66 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import App from "../App";
 
-import { afterAll, beforeAll, describe, expect, test } from "vitest";
-import { mockCalendarApiHandler } from "../mockCalendarApiHandler";
-import { setupServer } from "msw/node";
+import { ReactNode } from "react";
 
-const server = setupServer(...mockCalendarApiHandler);
-
-beforeAll(() => server.listen());
-afterAll(() => server.close());
+const setup = (component: ReactNode) => {
+  const user = userEvent.setup();
+  return { user, ...render(component) };
+};
 
 describe("일정 관리 애플리케이션 통합 테스트", () => {
   describe("일정 CRUD 및 기본 기능", () => {
     test.only("새로운 일정을 생성하고 모든 필드가 정확히 저장되는지 확인한다", async () => {
-      render(<App />);
+      const { user } = setup(<App />);
       const titleInput = screen.getByLabelText("제목");
-      await userEvent.type(titleInput, "회의");
+      await user.type(titleInput, "회의");
 
       const calendarInput = screen.getByLabelText("날짜");
       fireEvent.input(calendarInput, { target: { value: "2024-07-30" } });
 
       const startTimeInput = screen.getByLabelText("시작 시간");
-      await userEvent.type(startTimeInput, "15:00");
+      await user.type(startTimeInput, "15:00");
 
       const endTimeInput = screen.getByLabelText("종료 시간");
-      await userEvent.type(endTimeInput, "16:00");
+      await user.type(endTimeInput, "16:00");
 
       const descriptionInput = screen.getByLabelText("설명");
-      await userEvent.type(descriptionInput, "앱 버전 2 기획 설명");
+      await user.type(descriptionInput, "앱 버전 2 기획 설명");
 
       const locationInput = screen.getByLabelText("위치");
-      await userEvent.type(locationInput, "회의실 1");
+      await user.type(locationInput, "회의실 1");
 
       const categrySelect = screen.getByLabelText("카테고리");
-      await userEvent.selectOptions(categrySelect, ["업무"]);
+      await user.selectOptions(categrySelect, ["업무"]);
 
       const repeatCheckbox = screen.getByLabelText("반복 설정");
-      await userEvent.click(repeatCheckbox);
+      await user.click(repeatCheckbox);
 
       const alarmSelect = screen.getByLabelText("알림 설정");
-      await userEvent.selectOptions(alarmSelect, ["10분 전"]);
+      await user.selectOptions(alarmSelect, ["10분 전"]);
 
       const repeatSelect = screen.getByLabelText("반복 유형");
-      await userEvent.selectOptions(repeatSelect, ["매일"]);
+      await user.selectOptions(repeatSelect, ["매일"]);
 
       const repeatGapInput = screen.getByLabelText("반복 간격");
-      await userEvent.type(repeatGapInput, "1");
+      await user.type(repeatGapInput, "1");
 
       const repeatEndInput = screen.getByLabelText("반복 종료일");
       fireEvent.input(repeatEndInput, { target: { value: "2024-07-31" } });
 
       const addButton = screen.getByTestId("event-submit-button");
-      await userEvent.click(addButton);
+      await user.click(addButton);
 
-      waitFor(async () => {
-        expect(await screen.findByText("회의")).toBeInTheDocument();
-        expect(
-          await screen.findByText("2024-07-30 15:00 16:00"),
-        ).toBeInTheDocument();
-        expect(
-          await screen.findByText("앱 버전 2 기획 설명"),
-        ).toBeInTheDocument();
-        expect(await screen.findByText("회의실 1")).toBeInTheDocument();
-        expect(await screen.findByText("카테고리: 업무")).toBeInTheDocument();
-        expect(await screen.findByText("알림: 10분 전")).toBeInTheDocument();
-      });
+      expect(await screen.findByText("회의")).toBeInTheDocument();
+      expect(
+        await screen.findByText("2024-07-30 15:00 16:00"),
+      ).toBeInTheDocument();
+      expect(
+        await screen.findByText("앱 버전 2 기획 설명"),
+      ).toBeInTheDocument();
+      expect(await screen.findByText("회의실 1")).toBeInTheDocument();
+      expect(await screen.findByText("카테고리: 업무")).toBeInTheDocument();
+      expect(await screen.findByText("알림: 10분 전")).toBeInTheDocument();
     });
 
     test.fails("새로운 일정을 생성하고 모든 필드가 정확히 저장되는지 확인한다");
