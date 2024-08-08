@@ -23,7 +23,7 @@ interface Event {
 }
 
 // fake db
-let events: Event[] = [
+export const initalEvents: Event[] = [
   {
     id: 1,
     title: "팀 회의 msw",
@@ -38,82 +38,84 @@ let events: Event[] = [
   },
 ];
 
-export const mockCalendarApiHandler = [
-  http.get("/api/events", () => {
-    return HttpResponse.json(events);
-  }),
+export const createMockHandler = (initialEvents: Event[]) => {
+  let events = [...initialEvents];
 
-  http.post("/api/events", async ({ request }) => {
-    const newEvent = (await request.json()) as Event;
-    console.log(newEvent);
-    if (newEvent.repeat) {
-      const generatedEvents = generateRecurringEvents(newEvent);
-      console.log(generatedEvents);
-      events.push(...generatedEvents);
-    } else {
-      newEvent.id = events.length + 1;
-      events.push(newEvent);
+  return [
+    http.get("/api/events", () => {
+      return HttpResponse.json(events);
+    }),
+
+    http.post("/api/events", async ({ request }) => {
+      const newEvent = (await request.json()) as Event;
+      if (newEvent.repeat) {
+        const generatedEvents = generateRecurringEvents(newEvent);
+        events.push(...generatedEvents);
+      } else {
+        newEvent.id = events.length + 1;
+        events.push(newEvent);
+      }
+
+      return HttpResponse.json(newEvent, { status: 201 });
+    }),
+
+    http.put("/api/events/:id", async ({ params, request }) => {
+      const { id } = params;
+      const requestEvent = (await request.json()) as Event;
+      events = events.map((event) =>
+        event.id === Number(id) ? requestEvent : event,
+      );
+
+      const updatedEvent = events.find((event) => event.id === Number(id));
+      return HttpResponse.json(updatedEvent);
+    }),
+
+    http.delete("/api/events/:id", ({ params }) => {
+      const { id } = params;
+
+      events = events.filter((event) => event.id !== Number(id));
+      return HttpResponse.json(true, { status: 201 });
+    }),
+  ];
+
+  function generateRecurringEvents(event: Event): Event[] {
+    const repeat = event.repeat;
+    if (!repeat) return [event];
+
+    const { type, interval, endDate, endCnt } = repeat;
+    const initialDate = new Date(event.date);
+    let currentDate = initialDate;
+    const recurringEvents: Event[] = [];
+    let occurrenceCount = 0;
+    const MAX_OCCURRENCES = 365;
+    const currentId = Math.max(...events.map((e) => e.id)) + 1;
+
+    while (true) {
+      if (endDate && currentDate > new Date(endDate)) break;
+      if (endCnt && occurrenceCount >= endCnt) break;
+      if (!endDate && !endCnt && occurrenceCount >= MAX_OCCURRENCES) break;
+      recurringEvents.push({
+        ...event,
+        id: currentId + occurrenceCount,
+        date: currentDate.toISOString().split("T")[0],
+      });
+
+      occurrenceCount++;
+      switch (type) {
+        case "daily":
+          currentDate.setDate(currentDate.getDate() + interval);
+          break;
+        case "weekly":
+          currentDate.setDate(currentDate.getDate() + interval * 7);
+          break;
+        case "monthly":
+          currentDate.setMonth(currentDate.getMonth() + interval);
+          break;
+        case "yearly":
+          currentDate.setFullYear(currentDate.getFullYear() + interval);
+          break;
+      }
     }
-
-    return HttpResponse.json(newEvent, { status: 201 });
-  }),
-
-  http.put("/api/events/:id", async ({ params, request }) => {
-    const { id } = params;
-    const requestEvent = (await request.json()) as Event;
-    events = events.map((event) =>
-      event.id === Number(id) ? requestEvent : event,
-    );
-
-    const updatedEvent = events.find((event) => event.id === Number(id));
-    return HttpResponse.json(updatedEvent);
-  }),
-
-  http.delete("/api/events/:id", ({ params }) => {
-    const { id } = params;
-
-    events = events.filter((event) => event.id !== Number(id));
-    return HttpResponse.json(true, { status: 201 });
-  }),
-];
-
-function generateRecurringEvents(event: Event): Event[] {
-  const repeat = event.repeat;
-  if (!repeat) return [event];
-
-  const { type, interval, endDate, endCnt } = repeat;
-  const initialDate = new Date(event.date);
-  let currentDate = initialDate;
-  const recurringEvents: Event[] = [];
-  let occurrenceCount = 0;
-  const MAX_OCCURRENCES = 365;
-  const currentId = Math.max(...events.map((e) => e.id)) + 1;
-
-  while (true) {
-    if (endDate && currentDate > new Date(endDate)) break;
-    if (endCnt && occurrenceCount >= endCnt) break;
-    if (!endDate && !endCnt && occurrenceCount >= MAX_OCCURRENCES) break;
-    recurringEvents.push({
-      ...event,
-      id: currentId + occurrenceCount,
-      date: currentDate.toISOString().split("T")[0],
-    });
-
-    occurrenceCount++;
-    switch (type) {
-      case "daily":
-        currentDate.setDate(currentDate.getDate() + interval);
-        break;
-      case "weekly":
-        currentDate.setDate(currentDate.getDate() + interval * 7);
-        break;
-      case "monthly":
-        currentDate.setMonth(currentDate.getMonth() + interval);
-        break;
-      case "yearly":
-        currentDate.setFullYear(currentDate.getFullYear() + interval);
-        break;
-    }
+    return recurringEvents;
   }
-  return recurringEvents;
-}
+};

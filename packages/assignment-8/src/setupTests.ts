@@ -1,14 +1,14 @@
 import "@testing-library/jest-dom";
 import { setupServer } from "msw/node";
-import { mockCalendarApiHandler } from "./mockCalendarApiHandler";
+import { createMockHandler, initalEvents } from "./mockCalendarApiHandler";
 
-const server = setupServer(...mockCalendarApiHandler);
+const server = setupServer();
 
 beforeAll(() => server.listen());
 
 beforeEach(() => {
-  server.use(...mockCalendarApiHandler);
-
+  const handler = createMockHandler(initalEvents);
+  server.use(...handler);
   vi.useFakeTimers({
     shouldAdvanceTime: true,
   });

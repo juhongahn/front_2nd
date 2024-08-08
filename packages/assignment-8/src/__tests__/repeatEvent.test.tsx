@@ -10,7 +10,6 @@ import App from "../App";
 
 import { ReactNode } from "react";
 import {
-  editEndCondCount,
   typeEndCondCount,
   typeRepeatEndEvent,
   typeRepeatEvent,
@@ -195,7 +194,6 @@ describe("반복 일정 통합 테스트", () => {
 
       const dateSelect = screen.getByLabelText("view");
       await user.selectOptions(dateSelect, ["Week"]);
-      screen.logTestingPlaygroundURL();
       const weekCalendar = screen.getByTestId("week-view");
       const repeatEvents = await findAllByText(weekCalendar, "반복 종료");
       expect(repeatEvents.length).toBe(4);
@@ -231,7 +229,7 @@ describe("반복 일정 통합 테스트", () => {
   });
 
   describe("반복 일정을 수정 및 삭제 할 수 있다.", () => {
-    test.only("반복 일정의 단일 일정을 수정할 수 있다.", async () => {
+    test("반복 일정의 단일 일정을 수정할 수 있다.", async () => {
       const { user } = setup(<App />);
 
       await typeEndCondCount(user);
@@ -243,7 +241,6 @@ describe("반복 일정 통합 테스트", () => {
 
       const editBtns = await findAllByLabelText(eventListDiv, "Edit event");
       await user.click(editBtns[2]);
-
       const titleInput = screen.getByLabelText("제목");
       await user.clear(titleInput);
       await user.type(titleInput, "반복 일정 수정");
@@ -255,7 +252,7 @@ describe("반복 일정 통합 테스트", () => {
       expect(editedEvents.length).toBe(1);
     });
 
-    test.only("반복 일정의 단일 일정을 삭제할 수 있다.", async () => {
+    test("반복 일정의 단일 일정을 삭제할 수 있다.", async () => {
       const { user } = setup(<App />);
 
       await typeEndCondCount(user);
